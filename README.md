@@ -1,6 +1,6 @@
 # Chipp8
 
-A simple Chip-8 interpreter targeting the original instruction set developed for the 1977 COSMAC VIP computer. Support for other Chip-8 variations or newer versions (such as SCHIP, XO-CHIP, etc.) is currently not available.
+A simple Chip-8 interpreter targeting the original instruction set developed for the 1977 COSMAC VIP computer. Support for other Chip-8 variations or newer versions (such as CHIP-48, MEGACHIP, SCHIP1.X, SCHIP-MODERN and XO-CHIP) is currently not available.
 
 ## Features
 
