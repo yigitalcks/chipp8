@@ -10,29 +10,26 @@
 
 class Emulator {
 private:
-  static constexpr uint32_t CPU_HZ = 1000;
-  static constexpr uint32_t TIMER_HZ = 60;
-  static constexpr uint32_t SCREEN_HZ = 60;
-  static constexpr uint64_t NS_PER_SECOND = 1000000000;
+	static constexpr uint32_t CPU_HZ = 1000;
+	static constexpr uint32_t TIMER_HZ = 60;
+	static constexpr uint32_t SCREEN_HZ = 60;
+	static constexpr uint64_t NS_PER_SECOND = 1000000000;	
+	static constexpr uint64_t nsPerCycle = NS_PER_SECOND / CPU_HZ;
+	static constexpr uint64_t nsPerTimerTick = NS_PER_SECOND / TIMER_HZ;
+	static constexpr uint64_t nsPerFrame = NS_PER_SECOND / SCREEN_HZ;	
 
-  static constexpr uint64_t nsPerCycle = NS_PER_SECOND / CPU_HZ;
-  static constexpr uint64_t nsPerTimerTick = NS_PER_SECOND / TIMER_HZ;
-  static constexpr uint64_t nsPerFrame = NS_PER_SECOND / SCREEN_HZ;
+	SDL_Window *m_window{nullptr};
+	SDL_Renderer *m_renderer{nullptr};
+	SDL_AudioStream *m_audioStream{nullptr};
+	SDL_Event m_event;
+	Chip8 m_chip8{};	
 
-  SDL_Window *m_window{nullptr};
-  SDL_Renderer *m_renderer{nullptr};
-  SDL_AudioStream *m_audioStream{nullptr};
-  SDL_Event m_event;
-  Chip8 m_chip8{};
-
-  void initAudio();
-  void decode_and_execute(uint16_t instruction);
-
+	void initAudio();
 public:
-  Emulator();
-  ~Emulator();
+  	Emulator();
+  	~Emulator();
 
-  bool run(const std::filesystem::path &path);
+	bool run(const std::filesystem::path &path);
 };
 
 #endif // EMULATOR_H
