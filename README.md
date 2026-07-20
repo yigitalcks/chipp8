@@ -24,9 +24,8 @@ The project uses SDL3 as a git submodule. Make sure to fetch the submodules befo
 git submodule update --init --recursive
 
 # Create build directory and compile
-mkdir build && cd build
-cmake ..
-cmake --build .
+cmake -S . -B build
+cmake --build build
 ```
 
 ## Running the Interpreter
