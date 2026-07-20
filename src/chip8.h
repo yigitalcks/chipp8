@@ -9,29 +9,27 @@
 #include <bitset>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 #include <limits>
 #include <random>
 
-// 0x190 - 0x1DF FontData
-// 0x1E0 - 0x1FF Stack
-// 0x200 - 0xE8F Programs
-
-#define MEMORY_SIZE 4096
-#define N_REGISTERS 16
-#define N_KEY 16
-
-#define STACK_START_ADDRESS (0x0200)
-#define FONT_DATA_ADDRESS (0x0190)
-#define PROGRAM_ADDRESS (0x0200)
-#define PROGRAM_END_ADDRESS (0x0E8F)
-#define PROGRAM_SIZE_LIMIT (PROGRAM_END_ADDRESS - PROGRAM_ADDRESS)
-
-#define DISPLAY_WIDTH 64
-#define DISPLAY_HEIGHT 32
-#define FONT_SPRITE_SIZE 5
-
 class Chip8 {
 public:
+  static constexpr int MEMORY_SIZE = 4096;
+  static constexpr int N_REGISTERS = 16;
+  static constexpr int N_KEY = 16;
+
+  static constexpr uint16_t STACK_START_ADDRESS = 0x0200;
+  static constexpr uint16_t FONT_DATA_ADDRESS = 0x0190;
+  static constexpr uint16_t PROGRAM_ADDRESS = 0x0200;
+  static constexpr uint16_t PROGRAM_END_ADDRESS = 0x0E8F;
+  static constexpr uint16_t PROGRAM_SIZE_LIMIT =
+      PROGRAM_END_ADDRESS - PROGRAM_ADDRESS;
+
+  static constexpr int DISPLAY_WIDTH = 64;
+  static constexpr int DISPLAY_HEIGHT = 32;
+  static constexpr int FONT_SPRITE_SIZE = 5;
+
   static constexpr std::array<std::pair<SDL_Scancode, uint8_t>, N_KEY> kKeyMap{{
       {SDL_SCANCODE_1, 0x01},
       {SDL_SCANCODE_2, 0x02},
@@ -88,21 +86,18 @@ private:
   uint8_t m_delayTimer{};
   uint8_t m_soundTimer{};
 
-  // Holds wheter is a key(0-F) pressed
+  // Holds whether a key (0-F) is pressed
   std::bitset<N_KEY> m_keys;
 
-  // general-purpose registers
+  // General-purpose registers
   uint8_t V[N_REGISTERS]{};
 
   std::mt19937 m_gen;
   std::uniform_int_distribution<int> m_distrib;
 
-public:
-  uint8_t memory[MEMORY_SIZE]{};
-  std::array<uint8_t, DISPLAY_WIDTH * DISPLAY_HEIGHT> display{};
-  uint16_t pc{PROGRAM_ADDRESS};
-
-  Chip8();
+  uint8_t m_memory[MEMORY_SIZE]{};
+  std::array<uint8_t, DISPLAY_WIDTH * DISPLAY_HEIGHT> m_display{};
+  uint16_t m_pc{PROGRAM_ADDRESS};
 
   void I_00E0();                      // CLS
   void I_00EE();                      // RET
@@ -143,6 +138,16 @@ public:
   void I_FX33(uint8_t x); // LD B, VX
   void I_FX55(uint8_t x); // LD [I], VX
   void I_FX65(uint8_t x); // LD VX, [I]
+
+public:
+  Chip8();
+
+  bool loadROM(const std::filesystem::path &path);
+  uint16_t fetch();
+  void decode_and_execute(uint16_t instruction);
+  void step();
+
+  const uint8_t *getDisplayBuffer() const { return m_display.data(); }
 
   uint8_t getDelayTimer() { return m_delayTimer; }
   uint8_t getSoundTimer() { return m_soundTimer; }
