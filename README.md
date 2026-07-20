@@ -4,9 +4,9 @@ A simple Chip-8 interpreter targeting the original instruction set developed for
 
 ## Features
 
-* **CPU Speed:** 1000 Hz (1000 cycles per second)
+* **CPU Speed:** 700 Hz
 * **Timers:** 60 Hz delay and sound timers
-* **Resolution:** Scaled from the original 64x32 to a 1280x720 window
+* **Resolution:** Scaled from the original 64x32 to a 1280x640 window
 * **Audio:** Mono beep tone generated using SDL3
 
 ## Requirements

@@ -4,7 +4,7 @@
 #include <filesystem>
 
 Chip8::Chip8() : m_gen(std::random_device{}()), m_distrib(0, 255) {
-	std::memcpy(m_memory + FONT_DATA_ADDRESS, kFontData, sizeof(kFontData));
+	std::copy(kFontData.begin(), kFontData.end(), m_memory.begin() + FONT_DATA_ADDRESS);
 }
 
 bool Chip8::loadROM(const std::filesystem::path& path) {
@@ -14,7 +14,7 @@ bool Chip8::loadROM(const std::filesystem::path& path) {
 		return false;
 	}
 
-	size_t size = std::filesystem::file_size(path);
+	size_t size{std::filesystem::file_size(path)};
 	if (size > PROGRAM_SIZE_LIMIT) {
 		std::cerr << "Rom size limit has been exceeded! Rom size: " << size << ", limit: " << PROGRAM_SIZE_LIMIT << " bytes\n";
 		return false;
@@ -28,14 +28,14 @@ uint16_t Chip8::fetch() {
 	if (m_pc >= MEMORY_SIZE - 1) {
 		return 0;
 	}
-	uint16_t instruction = (m_memory[m_pc] << 8) | m_memory[m_pc + 1];
+	uint16_t instruction{static_cast<uint16_t>((m_memory[m_pc] << 8) | m_memory[m_pc + 1])};
 	m_pc += 2;
 
 	return instruction;
 }
 
 void Chip8::step() {
-	uint16_t instruction = fetch();
+	uint16_t instruction{fetch()};
 	decode_and_execute(instruction);
 }
 
@@ -205,7 +205,7 @@ void Chip8::I_00E0() {
 }
 
 void Chip8::I_00EE() {
-	uint16_t ret = (m_memory[m_sp] << 8) | m_memory[m_sp + 1];
+	uint16_t ret{static_cast<uint16_t>((m_memory[m_sp] << 8) | m_memory[m_sp + 1])};
 	m_sp += 2;
 
 	m_pc = ret;
@@ -213,6 +213,7 @@ void Chip8::I_00EE() {
 
 // Deprecated
 void Chip8::I_0NNN(uint16_t nnn) {
+	(void)nnn;
 	// Not Implemented
 }
 
@@ -287,7 +288,7 @@ void Chip8::I_8XY5(uint8_t x, uint8_t y) {
 void Chip8::I_8XY6(uint8_t x, uint8_t y) {
 	V[x] = V[y];
 
-	uint8_t shifted_out = V[x] & 0x01;
+	uint8_t shifted_out{static_cast<uint8_t>(V[x] & 0x01)};
 	V[x] >>= 1;
 	V[0xF] = shifted_out;
 }
@@ -305,7 +306,7 @@ void Chip8::I_8XY7(uint8_t x, uint8_t y) {
 void Chip8::I_8XYE(uint8_t x, uint8_t y) {
 	V[x] = V[y];
 
-	uint8_t shifted_out = V[x] & 0x80;
+	uint8_t shifted_out{static_cast<uint8_t>(V[x] & 0x80)};
 	V[x] <<= 1;
 	V[0xF] = shifted_out;
 }
@@ -322,8 +323,8 @@ void Chip8::I_BNNN(uint16_t nnn) { m_pc = nnn + V[0]; }
 void Chip8::I_CXNN(uint8_t x, uint8_t nn) { V[x] = static_cast<uint8_t>(m_distrib(m_gen) & nn); }
 
 void Chip8::I_DXYN(uint8_t x, uint8_t y, uint8_t n) {
-	uint8_t edgeH = static_cast<uint8_t>(std::min(int(V[x] % DISPLAY_WIDTH + 8), DISPLAY_WIDTH));
-	uint8_t edgeV = static_cast<uint8_t>(std::min(int(V[y] % DISPLAY_HEIGHT + n), DISPLAY_HEIGHT));
+	uint8_t edgeH{static_cast<uint8_t>(std::min(int(V[x] % DISPLAY_WIDTH + 8), DISPLAY_WIDTH))};
+	uint8_t edgeV{static_cast<uint8_t>(std::min(int(V[y] % DISPLAY_HEIGHT + n), DISPLAY_HEIGHT))};
 
 	V[0xF] = 0;
 
@@ -333,8 +334,8 @@ void Chip8::I_DXYN(uint8_t x, uint8_t y, uint8_t n) {
 
 		uint8_t shiftC = 7;
 		for (uint8_t j = static_cast<uint8_t>(V[x] % DISPLAY_WIDTH); j < edgeH; j++) {
-			uint8_t spritePixel = (spriteRow >> shiftC) & 0x01;
-			uint8_t displayPixel = m_display[static_cast<size_t>(i * DISPLAY_WIDTH + j)];
+		uint8_t spritePixel{static_cast<uint8_t>((spriteRow >> shiftC) & 0x01)};
+		uint8_t displayPixel{m_display[static_cast<size_t>(i * DISPLAY_WIDTH + j)]};
 
 			V[0xF] |= (spritePixel && displayPixel);
 

@@ -8,27 +8,25 @@
 #include <array>
 #include <bitset>
 #include <cstdint>
-#include <cstring>
 #include <filesystem>
 #include <limits>
 #include <random>
 
 class Chip8 {
 public:
-	static constexpr int MEMORY_SIZE = 4096;
-	static constexpr int N_REGISTERS = 16;
-	static constexpr int N_KEY = 16;
+	static constexpr int MEMORY_SIZE{4096};
+	static constexpr int N_REGISTERS{16};
+	static constexpr int N_KEY{16};
 
-	static constexpr uint16_t STACK_START_ADDRESS = 0x0200;
-	static constexpr uint16_t FONT_DATA_ADDRESS = 0x0190;
-	static constexpr uint16_t PROGRAM_ADDRESS = 0x0200;
-	static constexpr uint16_t PROGRAM_END_ADDRESS = 0x0E8F;
-	static constexpr uint16_t PROGRAM_SIZE_LIMIT =
-			PROGRAM_END_ADDRESS - PROGRAM_ADDRESS;
+	static constexpr uint16_t STACK_START_ADDRESS{0x0200};
+	static constexpr uint16_t FONT_DATA_ADDRESS{0x0190};
+	static constexpr uint16_t PROGRAM_ADDRESS{0x0200};
+	static constexpr uint16_t PROGRAM_END_ADDRESS{0x0E8F};
+	static constexpr uint16_t PROGRAM_SIZE_LIMIT{PROGRAM_END_ADDRESS - PROGRAM_ADDRESS};
 
-	static constexpr int DISPLAY_WIDTH = 64;
-	static constexpr int DISPLAY_HEIGHT = 32;
-	static constexpr int FONT_SPRITE_SIZE = 5;
+	static constexpr int DISPLAY_WIDTH{64};
+	static constexpr int DISPLAY_HEIGHT{32};
+	static constexpr int FONT_SPRITE_SIZE{5};
 
 	/*
 	 *  +---+---+---+---+     +---+---+---+---+
@@ -61,7 +59,7 @@ public:
 	}};
 
 private:
-	static constexpr uint8_t kFontData[]{
+	static constexpr std::array<uint8_t, 80> kFontData{{
 			0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 			0x20, 0x60, 0x20, 0x20, 0x70, // 1
 			0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -78,7 +76,7 @@ private:
 			0xE0, 0x90, 0x90, 0x90, 0xE0, // D
 			0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 			0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-	};
+	}};
 
 	uint16_t m_i{};
 	uint16_t m_sp{STACK_START_ADDRESS};
@@ -90,12 +88,12 @@ private:
 	std::bitset<N_KEY> m_keys;
 
 	// General-purpose registers
-	uint8_t V[N_REGISTERS]{};
+	std::array<uint8_t, N_REGISTERS> V{};
 
 	std::mt19937 m_gen;
 	std::uniform_int_distribution<int> m_distrib;
 
-	uint8_t m_memory[MEMORY_SIZE]{};
+	std::array<uint8_t, MEMORY_SIZE> m_memory{};
 	std::array<uint8_t, DISPLAY_WIDTH * DISPLAY_HEIGHT> m_display{};
 	uint16_t m_pc{PROGRAM_ADDRESS};
 

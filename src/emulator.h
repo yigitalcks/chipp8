@@ -10,24 +10,28 @@
 
 class Emulator {
 private:
-	static constexpr uint32_t CPU_HZ = 1000;
-	static constexpr uint32_t TIMER_HZ = 60;
-	static constexpr uint32_t SCREEN_HZ = 60;
-	static constexpr uint64_t NS_PER_SECOND = 1000000000;	
-	static constexpr uint64_t nsPerCycle = NS_PER_SECOND / CPU_HZ;
-	static constexpr uint64_t nsPerTimerTick = NS_PER_SECOND / TIMER_HZ;
-	static constexpr uint64_t nsPerFrame = NS_PER_SECOND / SCREEN_HZ;	
+	static constexpr uint32_t CPU_HZ{700};
+	static constexpr uint32_t TIMER_HZ{60};
+	static constexpr uint32_t SCREEN_HZ{60};
+	static constexpr uint64_t NS_PER_SECOND{1000000000};
+	static constexpr uint64_t nsPerCycle{NS_PER_SECOND / CPU_HZ};
+	static constexpr uint64_t nsPerTimerTick{NS_PER_SECOND / TIMER_HZ};
+	static constexpr uint64_t nsPerFrame{NS_PER_SECOND / SCREEN_HZ};
 
 	SDL_Window *m_window{nullptr};
 	SDL_Renderer *m_renderer{nullptr};
 	SDL_AudioStream *m_audioStream{nullptr};
-	SDL_Event m_event;
+	SDL_Event m_event{};
 	Chip8 m_chip8{};	
 
 	void initAudio();
 public:
   	Emulator();
   	~Emulator();
+	Emulator(const Emulator&) = delete;
+	Emulator& operator=(const Emulator&) = delete;
+	Emulator(Emulator&&) = delete;
+	Emulator& operator=(Emulator&&) = delete;
 
 	bool run(const std::filesystem::path &path);
 };

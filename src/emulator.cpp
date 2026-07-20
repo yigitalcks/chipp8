@@ -39,15 +39,14 @@ static void SDLCALL audioStreamCallback(void *userdata, SDL_AudioStream *stream,
 	(void)userdata;
 	(void)total_amount;
 	if (additional_amount > 0) {
-		int sampleRate = 44100;
-		int toneFreq = 440;
-		int period = sampleRate / toneFreq;
-		static int phase = 0;
+		int sampleRate{44100};
+		int toneFreq{440};
+		int period{sampleRate / toneFreq};
+		static int phase{0};
 
 		std::vector<int8_t> buffer(static_cast<size_t>(additional_amount));
 		for (int i = 0; i < additional_amount; ++i) {
-			buffer[static_cast<size_t>(i)] =
-					((phase % period) < (period / 2)) ? 30 : -30;
+			buffer[static_cast<size_t>(i)] = ((phase % period) < (period / 2)) ? 30 : -30;
 			phase = (phase + 1) % period;
 		}
 		SDL_PutAudioStreamData(stream, buffer.data(), additional_amount);
@@ -55,7 +54,7 @@ static void SDLCALL audioStreamCallback(void *userdata, SDL_AudioStream *stream,
 }
 
 void Emulator::initAudio() {
-	SDL_AudioSpec spec;
+	SDL_AudioSpec spec{};
 	spec.format = SDL_AUDIO_S8;
 	spec.channels = 1;
 	spec.freq = 44100;
@@ -100,30 +99,32 @@ bool Emulator::run(const std::filesystem::path &path) {
 		Chip8::DISPLAY_HEIGHT);
 
 	SDL_Palette *palette = SDL_CreatePalette(2);
-	SDL_Color colors[2] = {{0, 0, 0, 255}, {255, 255, 255, 255}};
+	SDL_Color colors[2]{{0, 0, 0, 255}, {255, 255, 255, 255}};
 	SDL_SetPaletteColors(palette, colors, 0, 2);
 	SDL_SetTexturePalette(tex, palette);
 
-	const Uint64 freq = SDL_GetPerformanceFrequency();
-	const Uint64 cpuTargetTicks = freq / CPU_HZ;
-	const Uint64 timerTargetTicks = freq / TIMER_HZ;
+	const Uint64 freq{SDL_GetPerformanceFrequency()};
+	const Uint64 cpuTargetTicks{freq / CPU_HZ};
+	const Uint64 timerTargetTicks{freq / TIMER_HZ};
 
-	Uint64 last_time = SDL_GetPerformanceCounter();
-	Uint64 cpuAccumulator = 0;
-	Uint64 timerAccumulator = 0;
+	Uint64 last_time{SDL_GetPerformanceCounter()};
+	Uint64 cpuAccumulator{0};
+	Uint64 timerAccumulator{0};
 
 	bool running{true};
 	while (running) {
 		while (SDL_PollEvent(&m_event)) {
 			if (m_event.type == SDL_EVENT_QUIT) {
 				running = false;
-			} else if (m_event.type == SDL_EVENT_KEY_DOWN) {
+			}
+			else if (m_event.type == SDL_EVENT_KEY_DOWN) {
 				for (const auto &[sdl_key, chip8_key] : Chip8::kKeyMap) {
 					if (sdl_key == m_event.key.scancode) {
 						m_chip8.setKey(chip8_key, true);
 					}
 				}
-			} else if (m_event.type == SDL_EVENT_KEY_UP) {
+			}
+			else if (m_event.type == SDL_EVENT_KEY_UP) {
 				for (const auto &[sdl_key, chip8_key] : Chip8::kKeyMap) {
 					if (sdl_key == m_event.key.scancode) {
 						m_chip8.setKey(chip8_key, false);
@@ -132,8 +133,8 @@ bool Emulator::run(const std::filesystem::path &path) {
 			}
 		}
 
-		Uint64 current_time = SDL_GetPerformanceCounter();
-		Uint64 frame_time = current_time - last_time;
+		Uint64 current_time{SDL_GetPerformanceCounter()};
+		Uint64 frame_time{current_time - last_time};
 		last_time = current_time;
 
 		if (frame_time > freq / 4)
