@@ -6,7 +6,6 @@ A simple CHIP-8 interpreter based on the original CHIP-8 implementation for the 
 
 * C++17 compliant compiler
 * CMake (Version 3.16 or higher)
-* SDL3 (Automatically compiled as a submodule; platform-specific development dependencies may be required on your system)
 
 ## Setup & Compilation
 
