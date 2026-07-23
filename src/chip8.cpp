@@ -82,6 +82,9 @@ void Chip8::decode_and_execute(uint16_t instruction) {
 		if (n == 0x0) {
 			I_5XY0(x, y);
 		}
+		else {
+			std::cerr << "Undefined instruction: " << instruction << '\n';
+		}
 		break;
 
 	case 0x6:
@@ -122,6 +125,7 @@ void Chip8::decode_and_execute(uint16_t instruction) {
 			I_8XYE(x, y);
 			break;
 		default:
+			std::cerr << "Undefined instruction: " << instruction << '\n';
 			break;
 		}
 		break;
@@ -129,6 +133,9 @@ void Chip8::decode_and_execute(uint16_t instruction) {
 	case 0x9:
 		if (n == 0x0) {
 			I_9XY0(x, y);
+		}
+		else {
+			std::cerr << "Undefined instruction: " << instruction << '\n';
 		}
 		break;
 
@@ -157,6 +164,7 @@ void Chip8::decode_and_execute(uint16_t instruction) {
 			I_EXA1(x);
 			break;
 		default:
+			std::cerr << "Undefined instruction: " << instruction << '\n';
 			break;
 		}
 		break;
@@ -167,7 +175,10 @@ void Chip8::decode_and_execute(uint16_t instruction) {
 			I_FX07(x);
 			break;
 		case 0x0A:
-			I_FX0A(x);
+			if (!I_FX0A(x))
+			{
+				m_pc -= 2;
+			}
 			break;
 		case 0x15:
 			I_FX15(x);
@@ -191,11 +202,13 @@ void Chip8::decode_and_execute(uint16_t instruction) {
 			I_FX65(x);
 			break;
 		default:
+			std::cerr << "Undefined instruction: " << instruction << '\n';
 			break;
 		}
 		break;
 
 	default:
+		std::cerr << "Undefined instruction: " << instruction << '\n';
 		break;
 	}
 }
@@ -205,8 +218,8 @@ void Chip8::I_00E0() {
 }
 
 void Chip8::I_00EE() {
-	uint16_t ret{static_cast<uint16_t>((m_memory[m_sp] << 8) | m_memory[m_sp + 1])};
-	m_sp += 2;
+	uint16_t ret {m_stack.top()};
+	m_stack.pop();
 
 	m_pc = ret;
 }
@@ -222,9 +235,7 @@ void Chip8::I_1NNN(uint16_t nnn) {
 }
 
 void Chip8::I_2NNN(uint16_t nnn) {
-	m_sp -= 2;
-	m_memory[m_sp] = (m_pc >> 8) & 0x00FF;
-	m_memory[m_sp + 1] = m_pc & 0x00FF;
+	m_stack.push(m_pc);
 
 	m_pc = nnn;
 }
@@ -334,8 +345,8 @@ void Chip8::I_DXYN(uint8_t x, uint8_t y, uint8_t n) {
 
 		uint8_t shiftC = 7;
 		for (uint8_t j = static_cast<uint8_t>(V[x] % DISPLAY_WIDTH); j < edgeH; j++) {
-		uint8_t spritePixel{static_cast<uint8_t>((spriteRow >> shiftC) & 0x01)};
-		uint8_t displayPixel{m_display[static_cast<size_t>(i * DISPLAY_WIDTH + j)]};
+			uint8_t spritePixel{static_cast<uint8_t>((spriteRow >> shiftC) & 0x01)};
+			uint8_t displayPixel{m_display[static_cast<size_t>(i * DISPLAY_WIDTH + j)]};
 
 			V[0xF] |= (spritePixel && displayPixel);
 
@@ -358,28 +369,31 @@ void Chip8::I_EXA1(uint8_t x) {
 	}
 }
 
-void Chip8::I_FX07(uint8_t x) { V[x] = m_delayTimer; }
-
-bool Chip8::I_FX0A(uint8_t x) {
-	SDL_Event e;
-	while (SDL_PollEvent(&e)) {
-		if (e.type == SDL_EVENT_KEY_DOWN) {
-			for (const auto &[sdl_key, chip8_key] : kKeyMap) {
-				if (sdl_key == e.key.scancode) {
-					V[x] = chip8_key;
-					return true;
-				}
-			}
-		}
-	}
-	return false;
+void Chip8::I_FX07(uint8_t x) { 
+	V[x] = m_delayTimer; 
 }
 
-void Chip8::I_FX15(uint8_t x) { m_delayTimer = V[x]; }
+bool Chip8::I_FX0A(uint8_t x) {
+    for (uint8_t key = 0; key < N_KEY; ++key) {
+        if (m_keys[key]) {
+            V[x] = key;
+            return true;
+        }
+    }
+    return false;
+}
 
-void Chip8::I_FX18(uint8_t x) { m_soundTimer = V[x]; }
+void Chip8::I_FX15(uint8_t x) { 
+	m_delayTimer = V[x];
+}
 
-void Chip8::I_FX1E(uint8_t x) { m_i += V[x]; }
+void Chip8::I_FX18(uint8_t x) { 
+	m_soundTimer = V[x];
+}
+
+void Chip8::I_FX1E(uint8_t x) {
+	m_i += V[x]; 
+}
 
 void Chip8::I_FX29(uint8_t x) {
 	m_i = static_cast<uint16_t>(FONT_DATA_ADDRESS + (V[x] & 0x0F) * FONT_SPRITE_SIZE);

@@ -1,7 +1,7 @@
 #include "emulator.h"
 #include "SDL3/SDL_render.h"
+#include <array>
 #include <iostream>
-#include <vector>
 
 Emulator::Emulator() {
 	SDL_SetAppMetadata("Chipp8", "0.5", "zort");
@@ -14,6 +14,10 @@ Emulator::Emulator() {
 	if (!SDL_CreateWindowAndRenderer("Chipp8", constants::windowWidth, constants::windowHeight, SDL_WINDOW_RESIZABLE, &m_window, &m_renderer)) {
 		SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
 		return;
+	}
+
+	if(!SDL_SetDefaultTextureScaleMode(m_renderer, SDL_SCALEMODE_NEAREST)) {
+		SDL_Log("Couldn't set texture scale mode: %s", SDL_GetError());
 	}
 
 	SDL_Surface *icon = SDL_LoadBMP("assets/logo.bmp");
@@ -35,21 +39,24 @@ Emulator::Emulator() {
 	initAudio();
 }
 
-static void SDLCALL audioStreamCallback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount) {
+void SDLCALL Emulator::audioStreamCallback(void *userdata, SDL_AudioStream *stream, int additionalAmount, int totalAmount) {
+	(void)totalAmount;
 	(void)userdata;
-	(void)total_amount;
-	if (additional_amount > 0) {
-		int sampleRate{44100};
-		int toneFreq{440};
-		int period{sampleRate / toneFreq};
-		static int phase{0};
 
-		std::vector<int8_t> buffer(static_cast<size_t>(additional_amount));
-		for (int i = 0; i < additional_amount; ++i) {
-			buffer[static_cast<size_t>(i)] = ((phase % period) < (period / 2)) ? 30 : -30;
-			phase = (phase + 1) % period;
+	constexpr int sampleRate{44100};
+	constexpr int toneFrequency{440};
+	std::array<int8_t, 1024> buffer{};
+	static int phase{};
+
+	while (additionalAmount > 0) {
+		const int byteCount{std::min(additionalAmount, static_cast<int>(buffer.size()))};
+		for (int i = 0; i < byteCount; ++i) {
+			buffer[static_cast<size_t>(i)] = ((phase * 2 * toneFrequency) / sampleRate % 2 == 0) ? 30 : -30;
+			phase = (phase + 1) % sampleRate;
 		}
-		SDL_PutAudioStreamData(stream, buffer.data(), additional_amount);
+
+		(void)SDL_PutAudioStreamData(stream, buffer.data(), byteCount);
+		additionalAmount -= byteCount;
 	}
 }
 
@@ -59,10 +66,9 @@ void Emulator::initAudio() {
 	spec.channels = 1;
 	spec.freq = 44100;
 
-	m_audioStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
-	if (m_audioStream) {
-		SDL_SetAudioStreamGetCallback(m_audioStream, audioStreamCallback, nullptr);
-		SDL_PauseAudioStreamDevice(m_audioStream);
+	m_audioStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, audioStreamCallback, nullptr);
+	if (!m_audioStream) {
+		SDL_Log("Couldn't open audio device: %s", SDL_GetError());
 	}
 }
 
@@ -158,14 +164,14 @@ bool Emulator::run(const std::filesystem::path &path) {
 			timerAccumulator -= timerTargetTicks;
 		}
 
-		if (m_chip8.getSoundTimer() > 0) {
-			if (m_audioStream) {
+		const bool shouldPlay{m_chip8.getSoundTimer() > 0};
+		if (m_audioStream && shouldPlay != m_audioPlaying) {
+			if (shouldPlay) {
 				SDL_ResumeAudioStreamDevice(m_audioStream);
-			}
-		} else {
-			if (m_audioStream) {
+			} else {
 				SDL_PauseAudioStreamDevice(m_audioStream);
 			}
+			m_audioPlaying = shouldPlay;
 		}
 
 		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);

@@ -6,6 +6,7 @@
 #include <SDL3/SDL_scancode.h>
 #include <algorithm>
 #include <array>
+#include <stack>
 #include <bitset>
 #include <cstdint>
 #include <filesystem>
@@ -15,11 +16,11 @@
 class Chip8 {
 public:
 	static constexpr int MEMORY_SIZE{4096};
+	static constexpr int STACK_SIZE{64};
 	static constexpr int N_REGISTERS{16};
 	static constexpr int N_KEY{16};
 
-	static constexpr uint16_t STACK_START_ADDRESS{0x0200};
-	static constexpr uint16_t FONT_DATA_ADDRESS{0x0190};
+	static constexpr uint16_t FONT_DATA_ADDRESS{0x0000};
 	static constexpr uint16_t PROGRAM_ADDRESS{0x0200};
 	static constexpr uint16_t PROGRAM_END_ADDRESS{0x0E8F};
 	static constexpr uint16_t PROGRAM_SIZE_LIMIT{PROGRAM_END_ADDRESS - PROGRAM_ADDRESS};
@@ -79,7 +80,7 @@ private:
 	}};
 
 	uint16_t m_i{};
-	uint16_t m_sp{STACK_START_ADDRESS};
+	uint16_t m_pc{PROGRAM_ADDRESS};
 
 	uint8_t m_delayTimer{};
 	uint8_t m_soundTimer{};
@@ -95,7 +96,7 @@ private:
 
 	std::array<uint8_t, MEMORY_SIZE> m_memory{};
 	std::array<uint8_t, DISPLAY_WIDTH * DISPLAY_HEIGHT> m_display{};
-	uint16_t m_pc{PROGRAM_ADDRESS};
+	std::stack<uint16_t> m_stack{};
 
 	void I_00E0();                      			// CLS
 	void I_00EE();                      			// RET
