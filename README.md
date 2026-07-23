@@ -2,13 +2,6 @@
 
 A simple CHIP-8 interpreter based on the original CHIP-8 implementation for the 1977 COSMAC VIP computer. Later variants such as CHIP-48, SUPER-CHIP, MEGACHIP, and XO-CHIP are not currently supported.
 
-## Features
-
-* **CPU Speed:** 700 Hz
-* **Timers:** 60 Hz delay and sound timers
-* **Resolution:** Scaled from the original 64x32 to a 1280x640 window
-* **Audio:** Mono beep tone generated using SDL3
-
 ## Requirements
 
 * C++17 compliant compiler
