@@ -7,6 +7,40 @@ Chip8::Chip8() : m_gen(std::random_device{}()), m_distrib(0, 255) {
 	std::copy(kFontData.begin(), kFontData.end(), m_memory.begin() + FONT_DATA_ADDRESS);
 }
 
+const uint8_t *Chip8::getDisplayBuffer() const
+{
+    return m_display.data(); 
+}
+
+uint8_t Chip8::getDelayTimer()
+{
+    return m_delayTimer;
+}
+
+uint8_t Chip8::getSoundTimer()
+{
+    return m_soundTimer;
+}
+
+void Chip8::setKey(uint8_t keyIndex, bool pressed)
+{
+	if (keyIndex < N_KEY) {
+		m_keys[keyIndex] = pressed;
+	}
+}
+
+void Chip8::decreaseDelayTimer()
+{
+	if (m_delayTimer > 0)
+		--m_delayTimer;
+}
+
+void Chip8::decreaseSoundTimer()
+{
+	if(m_soundTimer > 0)
+		--m_soundTimer;
+}
+
 bool Chip8::loadROM(const std::filesystem::path& path) {
 	std::ifstream file(path, std::ios::binary);
 	if (!file) {
@@ -213,6 +247,7 @@ void Chip8::decode_and_execute(uint16_t instruction) {
 	}
 }
 
+// Instructions
 void Chip8::I_00E0() { 
 	m_display.fill(0); 
 }

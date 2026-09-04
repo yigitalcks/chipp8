@@ -145,25 +145,15 @@ public:
 	void decode_and_execute(uint16_t instruction);
 	void step();
 
-	const uint8_t* getDisplayBuffer() const { return m_display.data(); }
+	const uint8_t* getDisplayBuffer() const;
 
-	uint8_t getDelayTimer() { return m_delayTimer; }
-	uint8_t getSoundTimer() { return m_soundTimer; }
+	uint8_t getDelayTimer();
+	uint8_t getSoundTimer();
 
-	void setKey(uint8_t keyIndex, bool pressed) {
-		if (keyIndex < N_KEY) {
-			m_keys[keyIndex] = pressed;
-		}
-	}
+	void setKey(uint8_t keyIndex, bool pressed);
 
-	void decreaseDelayTimer() {
-		if (m_delayTimer > 0)
-			m_delayTimer--;
-	}
-	void decreaseSoundTimer() {
-		if (m_soundTimer > 0)
-			m_soundTimer--;
-	}
+	void decreaseDelayTimer();
+	void decreaseSoundTimer();
 };
 
 #endif
